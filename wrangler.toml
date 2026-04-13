@@ -1,0 +1,15 @@
+name = "cf-phg-music-server"
+main = "src/index.ts"
+compatibility_date = "2024-08-05"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+API_KEY = "d9a6icz2isaiprgk9jqka6uee6dppbd7"
+
+[[kv_namespaces]]
+binding = "SCRIPTS_KV"
+id = "47ba4c4e12f649d0aaca5f876b1419e7"
+
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "0933b121f7c5454b8889545afaf7474b"

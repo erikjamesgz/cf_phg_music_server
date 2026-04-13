@@ -1,0 +1,15 @@
+node_modules/
+.wrangler/
+dist/
+*.wasm
+*.map
+!.wrangler/**
+package-lock.json
+.env
+.env.*
+!.env.example
+pnpm-lock.yaml
+yarn.lock
+*.log
+.DS_Store
+Thumbs.db
