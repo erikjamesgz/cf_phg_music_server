@@ -82,6 +82,7 @@ export class ScriptStorage {
   }
 
   private async ensureCache(): Promise<void> {
+    if (!this.db) throw new Error('D1 数据库未绑定，请先在 Cloudflare Worker 设置中绑定 D1 数据库');
     if (this._cache !== null) return;
     try {
       const row = await this.db.prepare('SELECT value FROM storage WHERE key=?').bind(STORAGE_KEY).first<{value:string}>();

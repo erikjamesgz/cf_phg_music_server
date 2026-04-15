@@ -3,10 +3,5 @@ main = "src/index.ts"
 compatibility_date = "2024-08-05"
 compatibility_flags = [ "nodejs_compat" ]
 
-[[d1_databases]]
-binding = "DB"
-database_name = "cf-phg-music-db"
-database_id = "abef333f-83e3-47eb-8ec7-7d2e27d99935"
-
 [vars]
 API_KEY = "c5cb88052fcfc21ee4a48ab7e3d3d964"
