@@ -44,10 +44,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tar -tzf cf-phg-music-server-bundle.tar.gz
-          echo "Uploading bundle..."
+          gh release delete latest --yes || true
           gh release create latest \
             --title "Latest Release (自动构建)" \
             --notes "预编译安装包，解压后运行 \`npx wrangler deploy\` 即可部署" \
-            cf-phg-music-server-bundle.tar.gz \
-            --clobber
+            cf-phg-music-server-bundle.tar.gz
