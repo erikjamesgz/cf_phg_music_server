@@ -31,8 +31,8 @@ interface ScriptInfo {
 
 let wasmModule: QuickJSWASMModule | null = null;
 
-const cfCompatibleVariant = newVariant((quickjsNgVariant as any).default, {
-  importModuleLoader: (quickjsNgVariant as any).default.importModuleLoader,
+const cfCompatibleVariant = newVariant(quickjsNgVariant as any, {
+  importModuleLoader: (quickjsNgVariant as any).importModuleLoader,
 } as any);
 
 async function getWasmModule(): Promise<QuickJSWASMModule> {
