@@ -4,6 +4,9 @@ on:
   push:
     branches: [master]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,13 +40,14 @@ jobs:
           cp package.json release/
           tar -czf cf-phg-music-server-bundle.tar.gz release/
 
-      - name: Create or update latest release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: latest
-          release_name: "Latest Release (自动构建)"
-          body: "预编译安装包，解压后运行 `npx wrangler deploy` 即可部署"
-          assets: cf-phg-music-server-bundle.tar.gz
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tar -tzf cf-phg-music-server-bundle.tar.gz
+          echo "Uploading bundle..."
+          gh release create latest \
+            --title "Latest Release (自动构建)" \
+            --notes "预编译安装包，解压后运行 \`npx wrangler deploy\` 即可部署" \
+            cf-phg-music-server-bundle.tar.gz \
+            --clobber
