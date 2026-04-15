@@ -14,3 +14,9 @@ yarn.lock
 log
 .DS_Store
 Thumbs.db
+
+# 构建产物
+index.js
+*.zip
+*.tar.gz
+*.js.bundle

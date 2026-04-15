@@ -1,11 +1,10 @@
-name: Build & Release Bundle
+name: CI Build Verify
 
 on:
   push:
     branches: [master]
-
-permissions:
-  contents: write
+  pull_request:
+    branches: [master]
 
 jobs:
   build:
@@ -13,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -21,41 +20,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build JavaScript bundle with esbuild
+      - name: Build with esbuild
         run: |
-          mkdir -p dist
           npx esbuild src/index.ts \
             --bundle \
-            --outdir=dist \
+            --outfile=dist/index.js \
             --platform=browser \
             --format=esm \
-            --external:@cf-wasm/quickjs \
-            --external:@jitl/quickjs-wasmfile-release-sync \
-            --external:quickjs-emscripten-core
+            --loader:.wasm=binary
 
-      - name: Copy required node_modules
+      - name: Verify build output
         run: |
-          mkdir -p release/node_modules/@cf-wasm/quickjs/dist
-          mkdir -p release/node_modules/@jitl/quickjs-wasmfile-release-sync/dist
-          mkdir -p release/node_modules/quickjs-emscripten-core/dist
-          cp -r node_modules/@cf-wasm/quickjs/dist/. release/node_modules/@cf-wasm/quickjs/dist/
-          cp -r node_modules/@jitl/quickjs-wasmfile-release-sync/dist/. release/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/
-          cp -r node_modules/quickjs-emscripten-core/dist/. release/node_modules/quickjs-emscripten-core/dist/
-          cp dist/index.js release/
-
-      - name: Prepare distributable bundle
-        run: |
-          sed 's|main = "src/index.ts"|main = "index.js"|' wrangler.toml > release/wrangler.toml
-          cp package.json release/
-          tar -czf cf-phg-music-server-bundle.tar.gz release/
-          ls -lh cf-phg-music-server-bundle.tar.gz
-
-      - name: Upload to GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release delete latest --yes || true
-          gh release create latest \
-            --title "Latest Release (自动构建)" \
-            --notes "预编译安装包，解压后运行 \`npx wrangler deploy\` 即可部署" \
-            cf-phg-music-server-bundle.tar.gz
+          echo "✅ Build successful!"
+          ls -lh dist/index.js
+          echo ""
+          echo "File size: $(du -h dist/index.js | cut -f1)"
