@@ -74,28 +74,27 @@ npx wrangler deploy
 
 ***
 
-### 方式二：下载预编译包部署（无需 GitHub，无需本地 Node.js）
+### 方式二：下载预编译包部署
 
-**1. 下载预编译包**
+**下载地址**：
 
-- 进入 [Actions](https://github.com/erikjamesgz/cf-phg-music-server/actions) 页面
-- 点击最新的 workflow 运行
-- 下载 `cf-phg-music-server-bundle.tar.gz`（保留 30 天）
+```
+https://github.com/erikjamesgz/cf-phg-music-server/releases/latest/download/cf-phg-music-server-bundle.tar.gz
+```
 
 **2. 解压并部署**
 
 ```bash
+# 下载
+curl -L https://github.com/erikjamesgz/cf-phg-music-server/releases/latest/download/cf-phg-music-server-bundle.tar.gz -o bundle.tar.gz
+
 # 解压
-tar -xzf cf-phg-music-server-bundle.tar.gz
+tar -xzf bundle.tar.gz
 cd release
 
-# 部署（需要先登录 Cloudflare）
+# 部署
 npx wrangler deploy
 ```
-
-**3. 后续步骤**
-
-同方式一：创建 D1 → 绑定 → 设置 API Key → 重新部署
 
 ***
 
