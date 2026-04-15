@@ -18,15 +18,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build worker bundle
-        run: npx wrangler deploy --outdir dist
-        env:
-          CI: "true"
+      - name: Build JavaScript bundle with esbuild
+        run: |
+          mkdir -p dist
+          npx esbuild src/index.ts \
+            --bundle \
+            --outdir=dist \
+            --platform=browser \
+            --format=esm \
+            --external:node:* \
+            --external:*.wasm
 
       - name: Prepare distributable bundle
         run: |
           mkdir -p release
-          cp -r dist/. release/
+          cp dist/index.js release/
           sed 's|main = "src/index.ts"|main = "index.js"|' wrangler.toml > release/wrangler.toml
           cp package.json release/
           tar -czf cf-phg-music-server-bundle.tar.gz release/
