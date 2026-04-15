@@ -6,8 +6,7 @@ import { SongListService } from './services/songlist_service.ts';
 import { LyricService } from './services/lyric_service.ts';
 
 export interface Env {
-  SCRIPTS_KV: KVNamespace;
-  CACHE_KV: KVNamespace;
+  DB: D1Database;
   API_KEY?: string;
 }
 
@@ -28,7 +27,7 @@ interface CachedRunner {
 }
 
 const _runnerCache = new Map<string, CachedRunner>();
-const CACHE_MAX_AGE_MS = 10 * 60 * 1000; // 10分钟过期
+const CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 const CACHE_MAX_SIZE = 5;
 
 function simpleHash(s: string): string {
@@ -79,25 +78,6 @@ function jsonResponse(data: any, status = 200, msg = 'success', extra?: any): Re
   const body: any = { code: status === 200 ? 200 : status, msg, data };
   if (extra) Object.assign(body, extra);
   return Response.json(body, { status });
-}
-
-function generateApiKey(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 32; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-  return result;
-}
-
-let cachedApiKey: string | null = null;
-
-async function getApiKey(kv: KVNamespace): Promise<string> {
-  if (cachedApiKey) return cachedApiKey;
-  const saved = await kv.get('api_key');
-  if (saved) { cachedApiKey = saved; return saved; }
-  const newKey = generateApiKey();
-  await kv.put('api_key', newKey);
-  cachedApiKey = newKey;
-  return newKey;
 }
 
 const searchService = new SearchService();
@@ -164,7 +144,10 @@ async function handleGetLoadedScripts(request: Request, storage: ScriptStorage):
 async function handleSetDefaultScript(request: Request, storage: ScriptStorage): Promise<Response> {
   const body = await request.json() as { id: string };
   if (!body.id) return jsonResponse(null, 400, '缺少 id 参数');
-  try { await storage.setDefaultScript(body.id); return jsonResponse({ success: true }); }
+  try {
+    await storage.setDefaultScript(body.id);
+    return jsonResponse({ success: true });
+  }
   catch (e: any) { return jsonResponse(null, 500, e.message); }
 }
 
@@ -856,25 +839,31 @@ export default {
 
     if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders() });
 
-    const apiKey = await getApiKey(env.SCRIPTS_KV);
-    const storage = new ScriptStorage(env.SCRIPTS_KV);
+    const apiKey = env.API_KEY || '';
+    const storage = new ScriptStorage(env.DB);
     const pathParts = url.pathname.split('/').filter(Boolean);
     const apiKeyInPath = pathParts[0];
     
     const isApiCall = pathParts.length >= 2 && (pathParts[1] === 'api' || pathParts[1] === 'scripts');
     if (isApiCall && apiKeyInPath !== apiKey) return jsonResponse(null, 401, '无效的 API Key');
 
+    const pathEndsWith = (suffix: string) => url.pathname.endsWith(suffix);
+
+    if (pathEndsWith('/setup')) {
+      return jsonResponse({ apiKey, endpoints: {
+        importScript: `POST /${apiKey}/api/scripts/import/url`,
+        getMusicUrl: `POST /${apiKey}/api/music/url`,
+        loadedScripts: `GET /${apiKey}/api/scripts/loaded`,
+        search: `GET /${apiKey}/api/search?keyword=xxx&source=kw&page=1&limit=20`,
+        songListDetail: `POST /${apiKey}/api/songlist/detail`,
+        songListByLink: `POST /${apiKey}/api/songlist/detail/by-link`,
+      }});
+    }
+
     try {
       switch (`${request.method} ${url.pathname}`) {
-        case `GET /setup`:
-          return jsonResponse({ apiKey, endpoints: {
-            importScript: `POST /${apiKey}/api/scripts/import/url`,
-            getMusicUrl: `POST /${apiKey}/api/music/url`,
-            loadedScripts: `GET /${apiKey}/api/scripts/loaded`,
-            search: `GET /${apiKey}/api/search?keyword=xxx&source=kw&page=1&limit=20`,
-            songListDetail: `POST /${apiKey}/api/songlist/detail`,
-            songListByLink: `POST /${apiKey}/api/songlist/detail/by-link`,
-          }});
+        case `GET /health`:
+          return jsonResponse({ code: 200, msg: 'success', data: { status: 'ok', service: 'cf-phg-music-server' } });
 
         case `POST /${apiKey}/api/scripts/import/url`:
           return await withTimeout(handleImportScriptFromUrl(request, storage), REQUEST_TIMEOUT_MS);
@@ -940,6 +929,7 @@ export default {
           return jsonResponse(null, 404, 'Not Found');
       }
     } catch (error: any) { return jsonResponse(null, 500, error.message || 'Internal Server Error'); }
+    finally { await storage.flush(); }
   },
 };
 
