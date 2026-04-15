@@ -1,0 +1,44 @@
+name: Build & Release Bundle
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build worker bundle
+        run: npx wrangler deploy --outdir dist
+        env:
+          CI: "true"
+
+      - name: Prepare distributable bundle
+        run: |
+          mkdir -p release
+          cp -r dist/. release/
+          sed 's|main = "src/index.ts"|main = "index.js"|' wrangler.toml > release/wrangler.toml
+          cp package.json release/
+          tar -czf cf-phg-music-server-bundle.tar.gz release/
+
+      - name: Create or update latest release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          release_name: "Latest Release (自动构建)"
+          body: "预编译安装包，解压后运行 `npx wrangler deploy` 即可部署"
+          assets: cf-phg-music-server-bundle.tar.gz
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}

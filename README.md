@@ -74,27 +74,48 @@ npx wrangler deploy
 
 ***
 
-### 方式二：通过压缩包部署（无需 GitHub）
+### 方式二：下载预编译包部署（无需 GitHub，无需本地 Node.js）
 
-**1. 下载项目**
+**1. 下载预编译包**
 
-- 从 GitHub 下载项目 ZIP 文件
-- 解压到本地
+- 进入 [Actions](https://github.com/erikjamesgz/cf-phg-music-server/actions) 页面
+- 点击最新的 workflow 运行
+- 下载 `cf-phg-music-server-bundle.tar.gz`（保留 30 天）
 
-**2. 上传项目**
+**2. 解压并部署**
 
-- 进入 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-- 选择 "Workers & Pages" -> "Create Application" -> "Upload worker"
-- 上传解压后的项目文件
+```bash
+# 解压
+tar -xzf cf-phg-music-server-bundle.tar.gz
+cd release
+
+# 部署（需要先登录 Cloudflare）
+npx wrangler deploy
+```
 
 **3. 后续步骤**
 
-完成上传后，剩余步骤与方式一完全相同：
+同方式一：创建 D1 → 绑定 → 设置 API Key → 重新部署
 
-- 创建 D1 数据库
-- 绑定 D1 数据库
-- 设置 API Key（可选）
-- 重新部署
+***
+
+### 方式三：本地构建后部署
+
+**1. 下载项目**
+
+```bash
+git clone https://github.com/erikjamesgz/cf-phg-music-server.git
+cd cf-phg-music-server
+npm install
+```
+
+**2. 配置并部署**
+
+```bash
+npx wrangler deploy
+```
+
+> **注意**：Cloudflare Workers 需要 TypeScript 编译和打包过程，无法直接上传源码包，必须使用 `wrangler deploy` 命令部署。
 
 ***
 
