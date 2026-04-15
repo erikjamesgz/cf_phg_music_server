@@ -1,143 +1,97 @@
 # 拼好歌 后端服务框架(Cloudflare Workers)
 
-这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）实现的 拼好歌 个人后台服务框架，支持**动态执行用户导入的脚本代码**，此后端服务不提供音乐内容和数据，仅提供脚本运行环境和能力，数据全部由用户自行导入的脚本提供，此项目参考洛雪音乐源码编写（抄来的），兼容洛雪音乐的第三方音源脚本（小部分不兼容）。本项目代码开源且免费，如你是付费使用本项目，建议申请仅退款。
+这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）实现的 拼好歌 个人后台服务框架，支持**动态执行用户导入的脚本插件代码**，此后端服务不提供音乐内容和数据，仅提供脚本运行环境和能力，数据全部由用户自行导入的脚本提供，此项目参考洛雪音乐源码编写（抄来的），兼容洛雪音乐的第三方音源脚本（小部分不兼容）。本项目代码开源且免费，如你是付费使用本项目，建议申请仅退款。
 
 ## 关联项目
 
 - **拼好歌小程序端** - [phg-music](https://github.com/erikjamesgz/phg-music)
-- **Deno Deploy 版本后端服务器** - [dn-phg-music-server](https://github.com/erikjamesgz/dn-phg-music-server)
+- **Deno Deploy 平台后端服务器** - [dn-phg-music-server](https://github.com/erikjamesgz/dn-phg-music-server)
 
-## 快速开始
+## 部署指南
 
-### 本地开发
-
-
-### 部署
-
-```bash
-# 部署到 Cloudflare Workers
-npx wrangler deploy
-```
-
-***
-
-## 部署指南（3分钟搞定）
-
-> **重要说明**：本项目使用了 D1 数据库 + WASM 运行时 + nodejs_compat 兼容标志，**无法通过 Cloudflare Dashboard 上传 zip 文件的方式部署**（这是 CF 平台限制）。
+> **重要说明**：本项目使用了 D1 数据库 + WASM 运行时 + nodejs\_compat 兼容标志，**无法通过 Cloudflare Dashboard 上传 zip 文件的方式部署**（这是 CF 平台限制）。
 >
 > 推荐使用以下两种方式部署，**方式一最简单**（全程网页操作，无需安装任何工具）：
 
----
+***
 
 ### 方式一：Fork + Cloudflare 一键连接部署 ⭐ 推荐（纯网页操作）
 
-**整个流程 3 分钟，不需要安装 Node.js 或任何命令行工具！**
-
 #### 第 1 步：Fork 本项目
 
-1. 打开 [https://github.com/erikjamesgz/cf_phg_music_server](https://github.com/erikjamesgz/cf_phg_music_server)
+1. 打开 <https://github.com/erikjamesgz/cf_phg_music_server>
 2. 点击右上角 **Fork** 按钮 → 确认创建
 
 #### 第 2 步：登录 Cloudflare 并授权 GitHub
 
 1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com/) → 登录
 2. 左侧菜单 → **Workers 和 Pages**
-3. 点击 **创建应用程序**
-4. 选择 **连接到 Git**（不是"创建Worker"！）
+3. 页面右上角点击 **创建应用程序**
+4. 选择 “Connect GitHub”（不是"创建Worker"！）
 5. 首次使用会提示授权 GitHub 账号 → 点击 **Connect GitHub** → 授权 Cloudflare 访问你的 GitHub
-6. 授权后，在仓库列表中选择你刚 **Fork** 的 `cf_phg_music_server` 仓库
-7. 点击 **开始设置**
-
-#### 第 3 步：配置构建设置
-
-在配置页面填写以下信息：
-
-| 配置项 | 填写内容 |
-|--------|---------|
-| 项目名称 | `cf-phg-music-server`（或自定义名称）|
-| 生产分支 | `master` |
-| 构建命令 | `npx esbuild src/index.ts --bundle --outfile=dist/index.js --platform=browser --format=esm --loader:.wasm=binary` |
-| 构建输出目录 | `dist` |
-| 根目录 | `/`（保持默认） |
-| 兼容性标志 | 在高级设置中添加 `nodejs_compat` |
-
-然后点击 **保存并部署**。
+6. 授权后，选择 “Continue with GitHub”
+7. 在仓库列表中选择你刚 **Fork** 的 `cf_phg_music_server` 仓库
+8. 然后下一步 ，项目名字填“`cf-phg-music-server`”（不能有下划线）
+9. 然后点击 **“部署”**
 
 #### 第 4 步：创建 D1 数据库
 
 1. Cloudflare 左侧菜单 → **存储和数据库** → **D1 SQL 数据库**
-2. 点击 **创建数据库**
+2. 页面右上角点击 **创建数据库**
 3. 名称填：`cf-phg-music-db` → **创建**
 
 #### 第 5 步：绑定 D1 数据库到 Worker
 
-1. 进入你刚部署的 Worker 项目（**Workers 和 Pages** → 点击项目名）
-2. 点 **设置** 标签页
+1. 进入你刚部署的 Worker 项目（Cloudflare 左侧菜单→计算→**Workers 和 Pages** → 点击项目`cf-phg-music-server`）
+2. 页面左上角的菜单栏点击“绑定”
 3. 找到 **绑定** 区域 → **D1 数据库** → **添加**
-4. 变量名称填：`DB`
+4. 变量名称填：`DB (要大写)`
 5. 数据库选择：`cf-phg-music-db`
-6. 点 **保存**
+6. 点击“添加绑定”
 
-#### 第 6 步：（可选）修改 API Key
+#### 第 6 步：修改 API Key
 
 默认 API Key 是 `c5cb88052fcfc21ee4a48ab7e3d3d964`。如需自定义：
-1. Worker 设置 → **变量和机密**
-2. 编辑 `API_KEY` 变量为你想要的值
 
-#### 第 7 步：重新部署使绑定生效
+1. 进入你刚部署的 Worker 项目（Cloudflare 左侧菜单 → 计算 → **Workers 和 Pages** → 点击项目`cf-phg-music-server`）
+2. 页面左上角的菜单栏点击“设置”→ **变量和机密**
+3. 编辑 `API_KEY` 变量为你想要的值，这是接口访问的秘钥非常重要
 
-每次修改绑定或环境变量后需要重新部署：
-- **部署** 标签页 → 右上角 **重新部署** 按钮
+#### 第 7 步：获取项目访问链接
 
-#### 🎉 完成！
-
-访问地址格式：
-```
-https://cf-phg-music-server.你的账户名.workers.dev/你的API_KEY
-```
-
----
-
-### 方式二：本地 Wrangler 部署（适合开发者）
-
-```bash
-# 1. 克隆项目
-git clone https://github.com/erikjamesgz/cf_phg_music_server.git
-cd cf_phg_music_server
-
-# 2. 安装依赖
-npm install
-
-# 3. 登录 Cloudflare
-npx wrangler login
-
-# 4. 创建 D1 数据库
-npx wrangler d1 create cf-phg-music-db
-# 把返回的 database_id 添加到 wrangler.toml 的 [[d1_databases]] 中
-
-# 5. 部署
-npx wrangler deploy
-```
-
----
-
-### 部署后获取服务地址
-
-部署成功后，Worker 的 URL 格式为：
+1. 进入你刚部署的 Worker 项目（Cloudflare 左侧菜单 → 计算 → **Workers 和 Pages** → 点击项目`cf-phg-music-server`）
+2. 页面左上角的菜单栏点击“设置”→**域和路由**
+3. 复制你**workers.dev 对应的值（值的格式为：“xxxx.workers.dev”）**
+4. 复制第六步的`API_KEY 的值`**（值的格式为“**`c5cb88052fcfc21ee4a48ab7e3d3dxxxx`**”）**
+5. 组成访问地址格式：
 
 ```
-https://cf-phg-music-server.你的账户.workers.dev
+https://xxxx.workers.dev/你的API_KEY
 ```
+#### 第 8 步：注册域名（如需国内访问）
 
-**拼接完整地址：**
+Workers 默认域名（`*.workers.dev`）在中国大陆**无法访问**，需要绑定自定义域名才能正常使用。
+
+**推荐免费域名注册平台：**
+
+| 平台 | 特点 | 链接 |
+|------|------|------|
+| INDEVS.in | 免费域名，单用户限5个，1年有效期 | [注册入口](https://domain.stackryze.com/) |
+| 其他免费域名 | 需选择支持 Cloudflare 托管的平台 | [整理列表](https://blog.zrf.me/p/Free-Domains/) |
+
+**INDEVS.in 注册教程**：[视频教程](https://www.youtube.com/watch?v=7cZC4G7je1U)
+
+#### 第 9 步：绑定自定义域名到 Worker
+
+1. 进入 Worker 项目 → **设置** → **域和路由**
+2. 点击 **添加** → 选择 **自定义域**
+3. 输入你注册的域名（如 `phg-music.indevs.in`）→ 点击 **添加域**
+
+**绑定完成后访问地址：**
 
 ```
-https://cf-phg-music-server.你的账户.workers.dev/你的API_KEY
+https://你的域名/你的API_KEY
 ```
-
-API Key 可在 `wrangler.toml` 的 `[vars]` 中查看，默认值为：`c5cb88052fcfc21ee4a48ab7e3d3d964`
-
----
 
 ## 费用说明
 
@@ -158,8 +112,8 @@ API Key 可在 `wrangler.toml` 的 `[vars]` 中查看，默认值为：`c5cb8805
 
 | 套餐  | 可支持人数       |
 | --- | ----------- |
-| 免费版 | **\~2000人** |
-| 付费版 | **\~7000人** |
+| 免费版 | **\~2000人/天** |
+| 付费版 | **\~7000人/天** |
 
 **结论**：免费版完全够用，即使几百人同时使用也绰绰有余。
 
@@ -281,7 +235,7 @@ GET /{apiKey}/api/scripts/loaded
 | homepage         | string    | 主页地址         |
 | version          | string    | 版本号          |
 | createdAt        | string    | 创建时间（ISO 格式） |
-| supportedSources | string[] | 支持的平台代码      |
+| supportedSources | string\[] | 支持的平台代码      |
 | isDefault        | boolean   | 是否为默认音源      |
 | successRate      | number    | 请求成功率（0-1）   |
 | successCount     | number    | 成功次数         |
@@ -392,7 +346,7 @@ Content-Type: application/json
 | interval          | string    | 否  | 歌曲时长（格式：mm:ss，用于换源匹配）                       |
 | musicInfo         | object    | 否  | 完整歌曲信息对象（可替代上述字段）                           |
 | allowToggleSource | boolean   | 否  | 是否允许换源，默认true                               |
-| excludeSources    | string[] | 否  | 换源时排除的平台列表                                  |
+| excludeSources    | string\[] | 否  | 换源时排除的平台列表                                  |
 
 **请求示例：**
 
