@@ -1,23 +1,16 @@
 # 拼好歌 后端服务框架(Cloudflare Workers)
 
-这是一个用 Cloudflare Workers 实现的 拼好歌 个人后台服务框架，此后端服务不提供音乐内容和数据，仅提供脚本运行环境和能力，数据全部由用户自行导入的脚本提供，此项目参考洛雪音乐源码编写（抄来的），兼容洛雪音乐的第三方音源脚本（小部分不兼容）。本项目代码开源且免费，如你是付费使用本项目，建议申请仅退款。
+这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）实现的 拼好歌 个人后台服务框架，此后端服务不提供音乐内容和数据，仅提供脚本运行环境和能力，数据全部由用户自行导入的脚本提供，此项目参考洛雪音乐源码编写（抄来的），兼容洛雪音乐的第三方音源脚本（小部分不兼容）。本项目代码开源且免费，如你是付费使用本项目，建议申请仅退款。
 
 ## 关联项目
 
 - **拼好歌小程序端** - [phg-music](https://github.com/erikjamesgz/phg-music)
-- **Deno Deploy 版本** - [dn-phg-music-server](https://github.com/erikjamesgz/dn-phg-music-server)
+- **Deno Deploy 版本后端服务器** - [dn-phg-music-server](https://github.com/erikjamesgz/dn-phg-music-server)
 
 ## 快速开始
 
 ### 本地开发
 
-```bash
-# 安装依赖
-npm install
-
-# 本地开发（需要 Wrangler CLI）
-npx wrangler dev
-```
 
 ### 部署
 
