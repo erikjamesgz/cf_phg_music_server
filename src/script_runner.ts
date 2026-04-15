@@ -1,5 +1,5 @@
 import { newQuickJSWASMModuleFromVariant, QuickJSContext, QuickJSHandle, QuickJSWASMModule, isSuccess, isFail } from 'quickjs-emscripten-core';
-import quickjsNgVariant from '@jitl/quickjs-ng-wasmfile-release-sync';
+import { getQuickJSWASMModule } from '@cf-wasm/quickjs';
 
 interface MusicUrlRequest {
   source: string;
@@ -29,11 +29,11 @@ interface ScriptInfo {
   homepage?: string;
 }
 
-let wasmModule: QuickJSWASMModule | null = null;
+let wasmModule: any = null;
 
-async function getWasmModule(): Promise<QuickJSWASMModule> {
+async function getWasmModule(): Promise<any> {
   if (wasmModule) return wasmModule;
-  wasmModule = await newQuickJSWASMModuleFromVariant(quickjsNgVariant as any);
+  wasmModule = await getQuickJSWASMModule();
   return wasmModule;
 }
 
