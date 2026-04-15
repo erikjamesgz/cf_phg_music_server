@@ -30,93 +30,103 @@ npx wrangler deploy
 
 ## 部署指南（3分钟搞定）
 
-由于 D1 数据库需要在部署时绑定，推荐使用以下两种方式部署：
+> **重要说明**：本项目使用了 D1 数据库 + WASM 运行时 + nodejs_compat 兼容标志，**无法通过 Cloudflare Dashboard 上传 zip 文件的方式部署**（这是 CF 平台限制）。
+>
+> 推荐使用以下两种方式部署，**方式一最简单**（全程网页操作，无需安装任何工具）：
 
-### 方式一：通过 GitHub Fork 部署（推荐）
+---
 
-**1. Fork 项目**
+### 方式一：Fork + Cloudflare 一键连接部署 ⭐ 推荐（纯网页操作）
 
-打开 [本项目](https://github.com/erikjamesgz/cf-phg-music-server)，点击右上角 Fork 按钮
+**整个流程 3 分钟，不需要安装 Node.js 或任何命令行工具！**
 
-**2. 登录 Cloudflare**
+#### 第 1 步：Fork 本项目
 
-打开 [Cloudflare Dashboard](https://dash.cloudflare.com/)，使用 GitHub 账号登录
+1. 打开 [https://github.com/erikjamesgz/cf_phg_music_server](https://github.com/erikjamesgz/cf_phg_music_server)
+2. 点击右上角 **Fork** 按钮 → 确认创建
 
-**3. 创建 D1 数据库**
+#### 第 2 步：登录 Cloudflare 并授权 GitHub
 
-- 控制面板左侧菜单->构建->存储和数据库->D1 SQL 数据库
-- 页面右上角点击 "创建数据库"
-- 输入数据库名称：`cf-phg-music-db`，其他就是默认选项，点击 "创建"
+1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com/) → 登录
+2. 左侧菜单 → **Workers 和 Pages**
+3. 点击 **创建应用程序**
+4. 选择 **连接到 Git**（不是"创建Worker"！）
+5. 首次使用会提示授权 GitHub 账号 → 点击 **Connect GitHub** → 授权 Cloudflare 访问你的 GitHub
+6. 授权后，在仓库列表中选择你刚 **Fork** 的 `cf_phg_music_server` 仓库
+7. 点击 **开始设置**
 
-**4. 创建 Workers 项目**
+#### 第 3 步：配置构建设置
 
-- 控制面板左侧菜单->计算->Workers 和 Pages
-- 点击 "创建应用程序"
-- 选择 "Continue with GitHub" 完成绑定GitHub账号以及授权访问你 Fork 的本仓库，然后下一步
-- 选择你 Fork 的仓库，点击 "部署"
+在配置页面填写以下信息：
 
-**5. 绑定 D1 数据库**
+| 配置项 | 填写内容 |
+|--------|---------|
+| 项目名称 | `cf-phg-music-server`（或自定义名称）|
+| 生产分支 | `master` |
+| 构建命令 | `npx esbuild src/index.ts --bundle --outfile=dist/index.js --platform=browser --format=esm --loader:.wasm=binary` |
+| 构建输出目录 | `dist` |
+| 根目录 | `/`（保持默认） |
+| 兼容性标志 | 在高级设置中添加 `nodejs_compat` |
 
-- 进入 Workers 项目详情页，点击 "设置" -> "D1"
-- 点击 "添加绑定"
-- 变量名称输入：`DB`
-- 选择 D1 数据库选择你刚创建的 `cf-phg-music-db`
-- 点击 "保存"
+然后点击 **保存并部署**。
 
-**6. 设置 API Key（可选）**
+#### 第 4 步：创建 D1 数据库
 
-- 进入 Worker 设置中的 "环境变量"
-- 创建 `API_KEY` 环境变量，不设置则使用默认值
+1. Cloudflare 左侧菜单 → **存储和数据库** → **D1 SQL 数据库**
+2. 点击 **创建数据库**
+3. 名称填：`cf-phg-music-db` → **创建**
 
-**7. 重新部署触发绑定生效**
+#### 第 5 步：绑定 D1 数据库到 Worker
 
-- 每次修改绑定配置后，需要重新部署使配置生效
+1. 进入你刚部署的 Worker 项目（**Workers 和 Pages** → 点击项目名）
+2. 点 **设置** 标签页
+3. 找到 **绑定** 区域 → **D1 数据库** → **添加**
+4. 变量名称填：`DB`
+5. 数据库选择：`cf-phg-music-db`
+6. 点 **保存**
 
-***
+#### 第 6 步：（可选）修改 API Key
 
-### 方式二：下载预编译包部署
+默认 API Key 是 `c5cb88052fcfc21ee4a48ab7e3d3d964`。如需自定义：
+1. Worker 设置 → **变量和机密**
+2. 编辑 `API_KEY` 变量为你想要的值
 
-**下载地址**：
+#### 第 7 步：重新部署使绑定生效
 
+每次修改绑定或环境变量后需要重新部署：
+- **部署** 标签页 → 右上角 **重新部署** 按钮
+
+#### 🎉 完成！
+
+访问地址格式：
 ```
-https://github.com/erikjamesgz/cf-phg-music-server/releases/latest/download/cf-phg-music-server-bundle.tar.gz
+https://cf-phg-music-server.你的账户名.workers.dev/你的API_KEY
 ```
 
-**2. 解压并部署**
+---
+
+### 方式二：本地 Wrangler 部署（适合开发者）
 
 ```bash
-# 下载
-curl -L https://github.com/erikjamesgz/cf-phg-music-server/releases/latest/download/cf-phg-music-server-bundle.tar.gz -o bundle.tar.gz
+# 1. 克隆项目
+git clone https://github.com/erikjamesgz/cf_phg_music_server.git
+cd cf_phg_music_server
 
-# 解压
-tar -xzf bundle.tar.gz
-cd release
-
-# 部署
-npx wrangler deploy
-```
-
-***
-
-### 方式三：本地构建后部署
-
-**1. 下载项目**
-
-```bash
-git clone https://github.com/erikjamesgz/cf-phg-music-server.git
-cd cf-phg-music-server
+# 2. 安装依赖
 npm install
-```
 
-**2. 配置并部署**
+# 3. 登录 Cloudflare
+npx wrangler login
 
-```bash
+# 4. 创建 D1 数据库
+npx wrangler d1 create cf-phg-music-db
+# 把返回的 database_id 添加到 wrangler.toml 的 [[d1_databases]] 中
+
+# 5. 部署
 npx wrangler deploy
 ```
 
-> **注意**：Cloudflare Workers 需要 TypeScript 编译和打包过程，无法直接上传源码包，必须使用 `wrangler deploy` 命令部署。
-
-***
+---
 
 ### 部署后获取服务地址
 
@@ -134,7 +144,7 @@ https://cf-phg-music-server.你的账户.workers.dev/你的API_KEY
 
 API Key 可在 `wrangler.toml` 的 `[vars]` 中查看，默认值为：`c5cb88052fcfc21ee4a48ab7e3d3d964`
 
-***
+---
 
 ## 费用说明
 
@@ -278,7 +288,7 @@ GET /{apiKey}/api/scripts/loaded
 | homepage         | string    | 主页地址         |
 | version          | string    | 版本号          |
 | createdAt        | string    | 创建时间（ISO 格式） |
-| supportedSources | string\[] | 支持的平台代码      |
+| supportedSources | string[] | 支持的平台代码      |
 | isDefault        | boolean   | 是否为默认音源      |
 | successRate      | number    | 请求成功率（0-1）   |
 | successCount     | number    | 成功次数         |
@@ -389,7 +399,7 @@ Content-Type: application/json
 | interval          | string    | 否  | 歌曲时长（格式：mm:ss，用于换源匹配）                       |
 | musicInfo         | object    | 否  | 完整歌曲信息对象（可替代上述字段）                           |
 | allowToggleSource | boolean   | 否  | 是否允许换源，默认true                               |
-| excludeSources    | string\[] | 否  | 换源时排除的平台列表                                  |
+| excludeSources    | string[] | 否  | 换源时排除的平台列表                                  |
 
 **请求示例：**
 
