@@ -1,6 +1,6 @@
 # 拼好歌 后端服务框架(Cloudflare Workers)
 
-这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）构建的拼好歌后端服务框架，支持动态执行用户导入的音源脚本插件。本项目不提供音乐数据，数据全部由用户自行导入的脚本返回。此项目参考洛雪音乐源码编写，兼容洛雪音乐第三方音源脚本。本项目代码开源且免费，如付费使用，建议申请退款。
+这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）构建的拼好歌后端服务框架，支持动态执行用户导入的音源脚本插件。本项目不提供音乐数据，数据全部由用户自行导入的脚本返回。此项目参考洛雪音乐源码编写，兼容洛雪音乐第三方音源脚本生态（小部分不兼容）。本项目代码开源且免费，如付费使用，建议申请退款。
 
 ## 关联项目
 
@@ -11,7 +11,8 @@
 
 ### GitHub Fork + Cloudflare 一键连接部署
 
-> 如果部署不明白，可以参考这个 [视频教程](https://www.youtube.com/watch?v=vf6U46f--6w&t=681s)（步骤和原理类似，参数需改成拼好歌对应的值）
+> 如果部署不明白，可以参考这个 [视频教程](https://www.youtube.com/watch?v=vf6U46f--6w\&t=681s)（步骤和原理类似，参数需改成拼好歌对应的值）
+
 #### 第 1 步：Fork 本项目
 
 1. GitHub 打开 <https://github.com/erikjamesgz/cf_phg_music_server>
