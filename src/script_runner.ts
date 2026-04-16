@@ -302,7 +302,7 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
         return nativeCall(NATIVE_EVENTS_NAMES.response, { requestKey, status: false, errorMessage: '__FORCE_INIT_DELEGATE__:' + JSON.stringify({source: data.source, action: data.action, type: data.info && data.info.type, songmid: data.info && data.info.musicInfo && data.info.musicInfo.songmid, name: data.info && data.info.musicInfo && data.info.musicInfo.name, singer: data.info && data.info.musicInfo && data.info.musicInfo.singer, hash: data.info && data.info.musicInfo && data.info.musicInfo.hash, songId: data.info && data.info.musicInfo && data.info.musicInfo.songId}) })
       }
       let evtDiag = ''
-      try { evtDiag = ' | isInitedApi=' + String(isInitedApi) + ' | lxOnCalled=' + String(globalThis.__lx_on_called || 'not set') + ' | diagError=' + String(globalThis.__diag_error || 'none') + ' | trace=' + String(globalThis.__trace ? globalThis.__trace.slice(0,10).join(',') : 'no trace') + ' | caughtErrors=' + String(globalThis.__caught_errors ? globalThis.__caught_errors.slice(0,5).map(function(e){return e.message}).join(';;') : 'none') } catch(_e) {}
+      try { evtDiag = ' | isInitedApi=' + String(isInitedApi) + ' | lxOnCalled=' + String(globalThis.__phg_on_called || 'not set') + ' | diagError=' + String(globalThis.__diag_error || 'none') + ' | trace=' + String(globalThis.__trace ? globalThis.__trace.slice(0,10).join(',') : 'no trace') + ' | caughtErrors=' + String(globalThis.__caught_errors ? globalThis.__caught_errors.slice(0,5).map(function(e){return e.message}).join(';;') : 'none') } catch(_e) {}
       return nativeCall(NATIVE_EVENTS_NAMES.response, { requestKey, status: false, errorMessage: 'Request event is not defined' + evtDiag })
     }
     try {
@@ -376,7 +376,7 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
       var result = data == null ? jsCall(action) : jsCall(action, parsed)
       if (result !== null) return result
       var dataStr = typeof data === 'string' ? data : JSON.stringify(data)
-      console.log('[PRELOAD] __lx_native__ delegating to _nativeCall, action=' + action + ', dataLen=' + (dataStr ? dataStr.length : 0))
+      console.log('[PRELOAD] __phg_native__ delegating to _nativeCall, action=' + action + ', dataLen=' + (dataStr ? dataStr.length : 0))
       return _nativeCall(key, action, dataStr)
     },
   })
@@ -453,7 +453,7 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
       if (typeof url === 'string' && url.indexOf('sign=') !== -1) {
         var signMatch = url.match(/sign=([^&]*)/);
         var pathMatch = url.match(new RegExp('/lxmusicv4/url/([^?]*)'));
-        console.log('[PRELOAD] [SIGN] lx.request with sign: url=' + url.substring(0, 200) + ', sign=' + (signMatch ? signMatch[1] : 'NO_MATCH') + ', isFail=' + (signMatch && signMatch[1] === 'fail') + ', path=' + (pathMatch ? pathMatch[1] : 'NO_MATCH') + ', hasSha256=' + (typeof globalThis.sha256 !== 'undefined') + ', rawScriptLen=' + (globalThis.lx && globalThis.lx.currentScriptInfo && globalThis.lx.currentScriptInfo.rawScript ? globalThis.lx.currentScriptInfo.rawScript.length : 'MISSING'));
+        console.log('[PRELOAD] [SIGN] phg.request with sign: url=' + url.substring(0, 200) + ', sign=' + (signMatch ? signMatch[1] : 'NO_MATCH') + ', isFail=' + (signMatch && signMatch[1] === 'fail') + ', path=' + (pathMatch ? pathMatch[1] : 'NO_MATCH') + ', hasSha256=' + (typeof globalThis.sha256 !== 'undefined') + ', rawScriptLen=' + (globalThis.lx && globalThis.lx.currentScriptInfo && globalThis.lx.currentScriptInfo.rawScript ? globalThis.lx.currentScriptInfo.rawScript.length : 'MISSING'));
       }
       let options = { headers, binary: binary === true }
       if (timeout && typeof timeout == 'number' && timeout > 0) options.timeout = Math.min(timeout, 60000)
@@ -464,7 +464,7 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
       return () => { if (!request.aborted) request.abort(); request = null }
     },
     send(eventName, data) {
-      console.log('[PRELOAD] lx.send called: eventName=' + eventName + ' sources=' + (data && data.sources ? Object.keys(data.sources).join(',') : 'null'))
+      console.log('[PRELOAD] phg.send called: eventName=' + eventName + ' sources=' + (data && data.sources ? Object.keys(data.sources).join(',') : 'null'))
       return new Promise((resolve, reject) => {
         if (!eventNames.includes(eventName)) return reject(new Error('The event is not supported: ' + eventName))
         switch (eventName) {
@@ -482,8 +482,8 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
       })
     },
     on(eventName, handler) {
-      console.log('[PRELOAD] lx.on called: eventName=' + eventName + ' handlerType=' + typeof handler)
-      globalThis.__lx_on_called = (globalThis.__lx_on_called || '') + eventName + ','
+      console.log('[PRELOAD] phg.on called: eventName=' + eventName + ' handlerType=' + typeof handler)
+      globalThis.__phg_on_called = (globalThis.__phg_on_called || '') + eventName + ','
       if (!eventNames.includes(eventName)) return Promise.reject(new Error('The event is not supported: ' + eventName))
       switch (eventName) {
         case EVENT_NAMES.request: events.request = handler; break
@@ -520,22 +520,22 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
   }
 
   if (typeof globalThis._nativeFnRegistry !== 'undefined' && Array.isArray(globalThis._nativeFnRegistry)) {
-    var _lx = globalThis.lx;
+    var _phgLx = globalThis.lx;
     var _regNative = function(fn, name) { try { globalThis._nativeFnRegistry.push([fn, name]) } catch(e) {} };
-    _regNative(_lx.request, 'request');
-    _regNative(_lx.send, 'send');
-    _regNative(_lx.on, 'on');
-    _regNative(_lx.utils.crypto.aesEncrypt, 'aesEncrypt');
-    _regNative(_lx.utils.crypto.rsaEncrypt, 'rsaEncrypt');
-    _regNative(_lx.utils.crypto.randomBytes, 'randomBytes');
-    _regNative(_lx.utils.crypto.md5, 'md5');
-    _regNative(_lx.utils.buffer.from, 'from');
-    _regNative(_lx.utils.buffer.bufToString, 'bufToString');
-    _regNative(_lx.utils.zlib.inflate, 'inflate');
-    _regNative(_lx.utils.zlib.deflate, 'deflate');
-    _regNative(_lx.getConsole, 'getConsole');
-    _regNative(_lx.createMainWindow, 'createMainWindow');
-    _regNative(_lx.getSystemFonts, 'getSystemFonts');
+    _regNative(_phgLx.request, 'request');
+    _regNative(_phgLx.send, 'send');
+    _regNative(_phgLx.on, 'on');
+    _regNative(_phgLx.utils.crypto.aesEncrypt, 'aesEncrypt');
+    _regNative(_phgLx.utils.crypto.rsaEncrypt, 'rsaEncrypt');
+    _regNative(_phgLx.utils.crypto.randomBytes, 'randomBytes');
+    _regNative(_phgLx.utils.crypto.md5, 'md5');
+    _regNative(_phgLx.utils.buffer.from, 'from');
+    _regNative(_phgLx.utils.buffer.bufToString, 'bufToString');
+    _regNative(_phgLx.utils.zlib.inflate, 'inflate');
+    _regNative(_phgLx.utils.zlib.deflate, 'deflate');
+    _regNative(_phgLx.getConsole, 'getConsole');
+    _regNative(_phgLx.createMainWindow, 'createMainWindow');
+    _regNative(_phgLx.getSystemFonts, 'getSystemFonts');
     _regNative(globalThis.setTimeout, 'setTimeout');
     _regNative(globalThis.clearTimeout, 'clearTimeout');
     _regNative(globalThis.setInterval, 'setInterval');
@@ -682,8 +682,8 @@ export class ScriptRunner {
         if (action === 'response') {
           try {
             const respData = JSON.parse(dataStr);
-            console.log('[ScriptRunner] [LX-RESP] action=response, requestKey=' + (respData.requestKey || 'null') + ', error=' + (respData.error || 'null') + ', status=' + respData.status + ', resultType=' + typeof respData.result + ', resultPreview=' + JSON.stringify(respData.result).substring(0, 200));
-            if ((this as any)._keyLogs) (this as any)._keyLogs.push('[ScriptRunner] [LX-RESP] requestKey=' + (respData.requestKey || 'null') + ', error=' + (respData.error || 'null') + ', status=' + respData.status + ', resultPreview=' + JSON.stringify(respData.result).substring(0, 200));
+            console.log('[ScriptRunner] [PHG-RESP] action=response, requestKey=' + (respData.requestKey || 'null') + ', error=' + (respData.error || 'null') + ', status=' + respData.status + ', resultType=' + typeof respData.result + ', resultPreview=' + JSON.stringify(respData.result).substring(0, 200));
+            if ((this as any)._keyLogs) (this as any)._keyLogs.push('[ScriptRunner] [PHG-RESP] requestKey=' + (respData.requestKey || 'null') + ', error=' + (respData.error || 'null') + ', status=' + respData.status + ', resultPreview=' + JSON.stringify(respData.result).substring(0, 200));
             const pending = pendingRequests.get(respData.requestKey);
             if (pending) {
               pendingRequests.delete(respData.requestKey);
@@ -821,14 +821,14 @@ export class ScriptRunner {
         const errHandle = setupResult.error;
         let errMsg = 'unknown';
         try { errMsg = ctx.dump(errHandle); } catch {}
-        console.error('[ScriptRunner] lx_setup() error:', errMsg);
-        throw new Error('lx_setup() failed: ' + errMsg);
+        console.error('[ScriptRunner] phg_setup() error:', errMsg);
+        throw new Error('phg_setup() failed: ' + errMsg);
       }
       disposeResult(setupResult);
       disposeResult(ctx.evalCode('delete globalThis.__rawScript__'));
 
-      const postSetupDiag = ctx.evalCode("JSON.stringify({hasLx:typeof globalThis.lx!=='undefined',hasNative:typeof globalThis.__lx_native__!=='undefined',lxKeys:typeof globalThis.lx!=='undefined'?Object.keys(globalThis.lx):null,hasSetTimeout:typeof globalThis.setTimeout!=='undefined'})");
-      klog('[ScriptRunner] ✅ After lx_setup():', ctx.dump(unwrapValue(postSetupDiag) || ctx.undefined));
+      const postSetupDiag = ctx.evalCode("JSON.stringify({hasPhg:typeof globalThis.lx!=='undefined',hasNative:typeof globalThis.__lx_native__!=='undefined',phgKeys:typeof globalThis.lx!=='undefined'?Object.keys(globalThis.lx):null,hasSetTimeout:typeof globalThis.setTimeout!=='undefined'})");
+      klog('[ScriptRunner] ✅ After phg_setup():', ctx.dump(unwrapValue(postSetupDiag) || ctx.undefined));
       (this as any)._envDiag = ctx.dump(unwrapValue(postSetupDiag) || ctx.undefined);
       disposeResult(postSetupDiag);
 
@@ -842,7 +842,7 @@ export class ScriptRunner {
           return 'CSI: name=' + csi.name + ', rawScriptLen=' + rsLen + ', rawScriptMD5=' + rsMd5 + ', rawScriptPreview=' + (rs ? JSON.stringify(rs.substring(0, 100)) : 'null');
         } catch(e) { return 'CSI error: ' + e.message; }
       })()`);
-      klog('[ScriptRunner] 🔑 After lx_setup CSI check:', ctx.dump(unwrapValue(csiDiag) || ctx.undefined));
+      klog('[ScriptRunner] 🔑 After phg_setup CSI check:', ctx.dump(unwrapValue(csiDiag) || ctx.undefined));
       disposeResult(csiDiag);
 
       klog('[ScriptRunner] Executing user script (new Function inside QuickJS)...');
@@ -909,9 +909,9 @@ export class ScriptRunner {
         try { results.push('window===globalThis=' + String(window === globalThis)); } catch(e) { results.push('window_eq_err=' + e.message); }
         try { results.push('self===globalThis=' + String(self === globalThis)); } catch(e) { results.push('self_eq_err=' + e.message); }
         try { results.push('window===self=' + String(window === self)); } catch(e) { results.push('win_self_err=' + e.message); }
-        try { results.push('lx.env=' + String(globalThis.lx.env)); } catch(e) {}
-        try { results.push('lx.version=' + String(globalThis.lx.version)); } catch(e) {}
-        try { results.push('lx.rawScriptLen=' + String(globalThis.lx.currentScriptInfo && globalThis.lx.currentScriptInfo.rawScript ? globalThis.lx.currentScriptInfo.rawScript.length : 'null')); } catch(e) {}
+        try { results.push('phg.env=' + String(globalThis.lx.env)); } catch(e) {}
+        try { results.push('phg.version=' + String(globalThis.lx.version)); } catch(e) {}
+        try { results.push('phg.rawScriptLen=' + String(globalThis.lx.currentScriptInfo && globalThis.lx.currentScriptInfo.rawScript ? globalThis.lx.currentScriptInfo.rawScript.length : 'null')); } catch(e) {}
         return results.join(' | ');
       })()`);
       klog('[ScriptRunner] Self integrity test:', ctx.dump(unwrapValue(selfIntegrityTest) || ctx.undefined));
@@ -929,10 +929,10 @@ export class ScriptRunner {
         d.hasProxy = typeof Proxy !== 'undefined';
         d.hasReflect = typeof Reflect !== 'undefined';
         d.hasSymbol = typeof Symbol !== 'undefined';
-        d.lxRequestType = typeof globalThis.lx !== 'undefined' ? typeof globalThis.lx.request : 'no lx';
-        d.lxOnType = typeof globalThis.lx !== 'undefined' ? typeof globalThis.lx.on : 'no lx';
-        d.lxSendType = typeof globalThis.lx !== 'undefined' ? typeof globalThis.lx.send : 'no lx';
-        d.lxEnv = typeof globalThis.lx !== 'undefined' ? globalThis.lx.env : 'no lx';
+        d.phgRequestType = typeof globalThis.lx !== 'undefined' ? typeof globalThis.lx.request : 'no phg';
+        d.phgOnType = typeof globalThis.lx !== 'undefined' ? typeof globalThis.lx.on : 'no phg';
+        d.phgSendType = typeof globalThis.lx !== 'undefined' ? typeof globalThis.lx.send : 'no phg';
+        d.phgEnv = typeof globalThis.lx !== 'undefined' ? globalThis.lx.env : 'no phg';
         return JSON.stringify(d);
       })()`);
       klog('[ScriptRunner] Pre-exec env diag:', ctx.dump(unwrapValue(preExecDiag) || ctx.undefined));
@@ -941,7 +941,7 @@ export class ScriptRunner {
       const escapedScript = JSON.stringify(rawScript);
       const newFnExecCode = `
         try {
-          globalThis.__diag_pre_lx = typeof globalThis.lx !== 'undefined' ? JSON.stringify({exists:true,version:globalThis.lx.version,env:globalThis.lx.env,onType:typeof globalThis.lx.on,sendType:typeof globalThis.lx.send,requestType:typeof globalThis.lx.request,utilsType:typeof globalThis.lx.utils,utilsKeys:typeof globalThis.lx.utils!=='undefined'?Object.keys(globalThis.lx.utils).join(','):'no utils',csiName:globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.name,csiVersion:globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.version,csiRawScriptLen:globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.rawScript?globalThis.lx.currentScriptInfo.rawScript.length:'null',utilsCryptoKeys:typeof globalThis.lx.utils!=='undefined'&&globalThis.lx.utils.crypto?Object.keys(globalThis.lx.utils.crypto).join(','):'no crypto',utilsBufferKeys:typeof globalThis.lx.utils!=='undefined'&&globalThis.lx.utils.buffer?Object.keys(globalThis.lx.utils.buffer).join(','):'no buffer'}) : 'no lx';
+          globalThis.__diag_pre_phg = typeof globalThis.lx !== 'undefined' ? JSON.stringify({exists:true,version:globalThis.lx.version,env:globalThis.lx.env,onType:typeof globalThis.lx.on,sendType:typeof globalThis.lx.send,requestType:typeof globalThis.lx.request,utilsType:typeof globalThis.lx.utils,utilsKeys:typeof globalThis.lx.utils!=='undefined'?Object.keys(globalThis.lx.utils).join(','):'no utils',csiName:globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.name,csiVersion:globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.version,csiRawScriptLen:globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.rawScript?globalThis.lx.currentScriptInfo.rawScript.length:'null',utilsCryptoKeys:typeof globalThis.lx.utils!=='undefined'&&globalThis.lx.utils.crypto?Object.keys(globalThis.lx.utils.crypto).join(','):'no crypto',utilsBufferKeys:typeof globalThis.lx.utils!=='undefined'&&globalThis.lx.utils.buffer?Object.keys(globalThis.lx.utils.buffer).join(','):'no buffer'}) : 'no phg';
           globalThis.__trace = [];
           globalThis.__caught_errors = [];
           globalThis.__prop_access_log = [];
@@ -1094,8 +1094,8 @@ export class ScriptRunner {
             globalThis.__diag_execMethod = 'newFunction(fallback)';
           }
           globalThis.__diag_result = String(_result);
-          globalThis.__diag_post_lx = typeof globalThis.lx !== 'undefined' ? JSON.stringify({exists:true,keys:Object.keys(globalThis.lx).join(','),onType:typeof globalThis.lx.on}) : 'no lx';
-          globalThis.__diag_sha256 = JSON.stringify({hasSha256:typeof globalThis.sha256!=='undefined',sha256Type:typeof globalThis.sha256,sha256Result:typeof globalThis.sha256==='function'?globalThis.sha256('test').substring(0,16):'no_fn',sha256FullResult:typeof globalThis.sha256==='function'?globalThis.sha256('test'):'no_fn',hasSha224:typeof globalThis.sha224!=='undefined',hasModule:typeof globalThis.module!=='undefined',hasExports:typeof globalThis.exports!=='undefined',processNodeVer:typeof globalThis.process!=='undefined'&&globalThis.process.versions?globalThis.process.versions.node:'no_process',csiRawScriptLen:typeof globalThis.lx!=='undefined'&&globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.rawScript?globalThis.lx.currentScriptInfo.rawScript.length:'no_lx'});
+          globalThis.__diag_post_phg = typeof globalThis.lx !== 'undefined' ? JSON.stringify({exists:true,keys:Object.keys(globalThis.lx).join(','),onType:typeof globalThis.lx.on}) : 'no phg';
+          globalThis.__diag_sha256 = JSON.stringify({hasSha256:typeof globalThis.sha256!=='undefined',sha256Type:typeof globalThis.sha256,sha256Result:typeof globalThis.sha256==='function'?globalThis.sha256('test').substring(0,16):'no_fn',sha256FullResult:typeof globalThis.sha256==='function'?globalThis.sha256('test'):'no_fn',hasSha224:typeof globalThis.sha224!=='undefined',hasModule:typeof globalThis.module!=='undefined',hasExports:typeof globalThis.exports!=='undefined',processNodeVer:typeof globalThis.process!=='undefined'&&globalThis.process.versions?globalThis.process.versions.node:'no_process',csiRawScriptLen:typeof globalThis.lx!=='undefined'&&globalThis.lx.currentScriptInfo&&globalThis.lx.currentScriptInfo.rawScript?globalThis.lx.currentScriptInfo.rawScript.length:'no_phg'});
         } catch(e) {
           globalThis.__diag_error = e.message;
           globalThis.__diag_stack = e.stack ? String(e.stack).substring(0, 500) : 'no stack';
@@ -1134,12 +1134,12 @@ export class ScriptRunner {
         }
 
         try {
-          const diagPreLx = ctx.evalCode(`String(globalThis.__diag_pre_lx || 'not set')`);
-          if (isSuccess(diagPreLx)) { klog('[ScriptRunner] DIAG pre-lx:', ctx.dump(diagPreLx.value)); disposeResult(diagPreLx); }
+          const diagPrePhg = ctx.evalCode(`String(globalThis.__diag_pre_phg || 'not set')`);
+          if (isSuccess(diagPrePhg)) { klog('[ScriptRunner] DIAG pre-phg:', ctx.dump(diagPrePhg.value)); disposeResult(diagPrePhg); }
           const diagResult = ctx.evalCode(`String(globalThis.__diag_result || 'not set')`);
           if (isSuccess(diagResult)) { console.log('[ScriptRunner] DIAG result:', ctx.dump(diagResult.value)); disposeResult(diagResult); }
-          const diagPostLx = ctx.evalCode(`String(globalThis.__diag_post_lx || 'not set')`);
-          if (isSuccess(diagPostLx)) { console.log('[ScriptRunner] DIAG post-lx:', ctx.dump(diagPostLx.value)); disposeResult(diagPostLx); }
+          const diagPostPhg = ctx.evalCode(`String(globalThis.__diag_post_phg || 'not set')`);
+          if (isSuccess(diagPostPhg)) { console.log('[ScriptRunner] DIAG post-phg:', ctx.dump(diagPostPhg.value)); disposeResult(diagPostPhg); }
           const diagError = ctx.evalCode(`String(globalThis.__diag_error || 'none')`);
           if (isSuccess(diagError)) { console.log('[ScriptRunner] DIAG error:', ctx.dump(diagError.value)); disposeResult(diagError); }
           const diagStack = ctx.evalCode(`String(globalThis.__diag_stack || 'none')`);
@@ -1181,7 +1181,7 @@ export class ScriptRunner {
         try {
           const postPhase1Diag = ctx.evalCode(`(function(){
             var d = {};
-            d.lxOnCalled = globalThis.__lx_on_called || 'not set';
+            d.phgOnCalled = globalThis.__phg_on_called || 'not set';
             d.traceLen = globalThis.__trace ? globalThis.__trace.length : 0;
             d.newTraces = 'none';
             if (globalThis.__trace && globalThis.__trace.length > 9) {
@@ -1205,7 +1205,7 @@ export class ScriptRunner {
 
 
         // === UNIVERSAL FALLBACK FOR SCRIPTS THAT DON'T SELF-INITIALIZE ===
-        // Some scripts cache lx.send/lx.on before our wrappers, bypassing isInitedApi.
+        // Some scripts cache phg.send/phg.on before our wrappers, bypassing isInitedApi.
         // After Phase 1, if still not inited, try universal recovery for ANY script.
         if (!isInitedApi) {
           const _scriptName = this.scriptInfo.name || 'unknown';
@@ -1223,7 +1223,7 @@ export class ScriptRunner {
                   ], status: true});
                   return 'send_inited_called';
                 }
-                return 'no_lx';
+                return 'no_phg';
               } catch(e) { return 'err:'+e.message; }
             })()`);
             if (isSuccess(_tr)) { console.log(`[ScriptRunner] 🔧 send(inited):`, ctx.dump(_tr.value)); disposeResult(_tr); }
@@ -1236,31 +1236,31 @@ export class ScriptRunner {
           }
 
           // === CRITICAL: Enable builtin bypass if script has no working request handler ===
-          // Some scripts call lx.send('inited') but never register lx.on('request', handler).
+          // Some scripts call phg.send('inited') but never register lx.on('request', handler).
           // Without a request handler, PRELOAD_SCRIPT's handleRequest will fail with "Request event is not defined".
           // Detect this and enable the builtin bypass so requests are handled by our host-side code.
           let hasRequestHandler = false;
           try {
             const rhCheck = ctx.evalCode(`(function(){
-              var lxObj = globalThis.lx;
-              if (!lxObj || typeof lxObj !== 'object') return 'no_lx';
-              // Check if events.request exists in the lx wrapper closure
+              var phgObj = globalThis.lx;
+              if (!phgObj || typeof phgObj !== 'object') return 'no_phg';
+              // Check if events.request exists in the phg wrapper closure
               // We can't directly access closure vars, so check indirect signals
               return 'checked';
             })()`);
             if (isSuccess(rhCheck)) { disposeResult(rhCheck); }
-            // Check via trying to detect if lx.on('request') was called
+            // Check via trying to detect if phg.on('request') was called
             const eventsCheck = ctx.evalCode(`(function(){
               return JSON.stringify({
-                hasLx: typeof globalThis.lx !== 'undefined',
-                lxOnCalled: globalThis.__lx_on_called || 'not_set',
+                hasPhg: typeof globalThis.lx !== 'undefined',
+                lxOnCalled: globalThis.__phg_on_called || 'not_set',
                 hasEventsRequest: typeof globalThis.__events_request !== 'undefined'
               });
             })()`);
             if (isSuccess(eventsCheck)) {
               const ecStr = ctx.dump(eventsCheck.value);
               console.log(`[ScriptRunner] 🔧 Events check after init: ${ecStr}`);
-              hasRequestHandler = ecStr.includes('__lx_on_called') && !ecStr.includes("not_set");
+              hasRequestHandler = ecStr.includes('__phg_on_called') && !ecStr.includes("not_set");
               disposeResult(eventsCheck);
             }
           } catch (_e) {}
@@ -1291,9 +1291,9 @@ export class ScriptRunner {
       const postExecDiag = ctx.evalCode(`
         (function(){
           var d = {};
-          d.hasLx = typeof globalThis.lx !== 'undefined';
-          if (d.hasLx) {
-            d.lxKeys = Object.keys(globalThis.lx).slice(0,20);
+          d.hasPhg = typeof globalThis.lx !== 'undefined';
+          if (d.hasPhg) {
+            d.phgKeys = Object.keys(globalThis.lx).slice(0,20);
           }
           d.hasNative = typeof globalThis.__lx_native__ !== 'undefined';
           d.exportsType = typeof globalThis.exports;
@@ -1348,7 +1348,7 @@ export class ScriptRunner {
             try {
               const finalDiag = ctx.evalCode(`(function(){
                 var d = {};
-                d.lxOnCalled = globalThis.__lx_on_called || 'not set';
+                d.phgOnCalled = globalThis.__phg_on_called || 'not set';
                 d.traceLen = globalThis.__trace ? globalThis.__trace.length : 0;
                 d.traceFull = globalThis.__trace ? globalThis.__trace.join('\\n') : 'no trace';
                 d.caughtErrors = globalThis.__caught_errors ? JSON.stringify(globalThis.__caught_errors).substring(0, 500) : 'none';
@@ -1414,7 +1414,7 @@ export class ScriptRunner {
                   const stateDiag = ctx.evalCode(`(function(){
                     var d = {};
                     d.loop = ${waitLoopCount};
-                    d.lxOnCalled = globalThis.__lx_on_called || 'not set';
+                    d.phgOnCalled = globalThis.__phg_on_called || 'not set';
                     d.traceLen = globalThis.__trace ? globalThis.__trace.length : 0;
                     d.newTraces = 'none';
                     if (globalThis.__trace && globalThis.__trace.length > ${lastTraceLen}) {
@@ -1467,8 +1467,8 @@ export class ScriptRunner {
         if (isSuccess(d1)) { diagInfo += 'diagError=' + ctx2.dump(d1.value); disposeResult(d1); }
         const d2 = ctx2.evalCode(`String(globalThis.__diag_stack || 'none')`);
         if (isSuccess(d2)) { diagInfo += ' | diagStack=' + String(ctx2.dump(d2.value)).substring(0, 300); disposeResult(d2); }
-        const d3 = ctx2.evalCode(`String(globalThis.__diag_pre_lx || 'not set')`);
-        if (isSuccess(d3)) { diagInfo += ' | diagPreLx=' + String(ctx2.dump(d3.value)).substring(0, 200); disposeResult(d3); }
+        const d3 = ctx2.evalCode(`String(globalThis.__diag_pre_phg || 'not set')`);
+        if (isSuccess(d3)) { diagInfo += ' | diagPrePhg=' + String(ctx2.dump(d3.value)).substring(0, 200); disposeResult(d3); }
         const d4 = ctx2.evalCode(`String(globalThis.__diag_trace || 'no trace')`);
         if (isSuccess(d4)) { diagInfo += ' | trace=' + String(ctx2.dump(d4.value)).substring(0, 500); disposeResult(d4); }
         const d5 = ctx2.evalCode(`JSON.stringify(globalThis.__caught_errors || [])`);
@@ -1714,7 +1714,7 @@ export class ScriptRunner {
       if (crypto?.subtle) {
         const encoder = new TextEncoder();
         const candidates = [
-          // Common patterns found in LX Music source scripts
+          // Common patterns found in PHG/LX Music source scripts
           `${source}${songId}${quality}`,
           `${source}/${songId}/${quality}`,
           `/lxmusicv4/url/${source}/${songId}/${quality}`,
@@ -1723,7 +1723,7 @@ export class ScriptRunner {
           songId + quality,
           quality + songId,
           JSON.stringify({ s: source, id: songId, q: quality }),
-          // With potential secret prefixes used by lx-music-source scripts
+          // With potential secret prefixes used by phg/lx-music-source scripts
           `lxmusic-${source}-${songId}-${quality}`,
           `lx.v4.${source}.${songId}.${quality}`,
         ];
@@ -2089,8 +2089,8 @@ export class ScriptRunner {
       // ===== SIGN CORRECTION PROXY for lxmusicv4 URLs =====
       // The QuickJS engine produces wrong SHA-256 sign for obfuscated scripts.
       // When upstream returns 404 for signed URLs, we detect and auto-correct.
-      const LXMUSIC_URL_PATTERN = /lxmusicv[0-9]*\/url\/([^\/]+)\/([^\/]+)\/([^/?]+)/;
-      const urlMatch = url.match(LXMUSIC_URL_PATTERN);
+      const PHGMUSIC_URL_PATTERN = /lxmusicv[0-9]*\/url\/([^\/]+)\/([^\/]+)\/([^/?]+)/;
+      const urlMatch = url.match(PHGMUSIC_URL_PATTERN);
       console.log(`[SignFix] URL matching check: url=${url?.substring(0, 80)}..., match=${!!urlMatch}, urlType=${typeof url}`);
 
       let response: Response;
