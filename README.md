@@ -1,6 +1,6 @@
 # 拼好歌 后端服务框架(Cloudflare Workers)
 
-这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）实现的 拼好歌 个人后台服务框架，支持**动态执行用户导入的脚本插件代码**，此后端服务不提供音乐内容和数据，仅提供脚本运行环境和能力，数据全部由用户自行导入的脚本提供，此项目参考洛雪音乐源码编写（抄来的），兼容洛雪音乐的第三方音源脚本（小部分不兼容）。本项目代码开源且免费，如你是付费使用本项目，建议申请仅退款。
+这是一个用 Cloudflare Workers + QuickJS（quickjs-ng.wasm）构建的拼好歌后端服务框架，支持动态执行用户导入的音源脚本插件。本项目不提供音乐数据，数据全部由用户自行导入的脚本返回。此项目参考洛雪音乐源码编写，兼容洛雪音乐第三方音源脚本。本项目代码开源且免费，如付费使用，建议申请退款。
 
 ## 关联项目
 
@@ -9,17 +9,11 @@
 
 ## 部署指南
 
-> **重要说明**：本项目使用了 D1 数据库 + WASM 运行时 + nodejs\_compat 兼容标志，**无法通过 Cloudflare Dashboard 上传 zip 文件的方式部署**（这是 CF 平台限制）。
->
-> 推荐使用以下两种方式部署，**方式一最简单**（全程网页操作，无需安装任何工具）：
-
-***
-
-### 方式一：Fork + Cloudflare 一键连接部署 ⭐ 推荐（纯网页操作）
+### 方式一：GitHub Fork + Cloudflare 一键连接部署
 
 #### 第 1 步：Fork 本项目
 
-1. 打开 <https://github.com/erikjamesgz/cf_phg_music_server>
+1. GitHub 打开 <https://github.com/erikjamesgz/cf_phg_music_server>
 2. 点击右上角 **Fork** 按钮 → 确认创建
 
 #### 第 2 步：登录 Cloudflare 并授权 GitHub
@@ -44,7 +38,7 @@
 
 1. 进入你刚部署的 Worker 项目（Cloudflare 左侧菜单→计算→**Workers 和 Pages** → 点击项目`cf-phg-music-server`）
 2. 页面左上角的菜单栏点击“绑定”
-3. 找到 **绑定** 区域 → **D1 数据库** → **添加**
+3. 找到 **绑定** 区域 →弹窗中选择 **D1 数据库** → **添加**
 4. 变量名称填：`DB (要大写)`
 5. 数据库选择：`cf-phg-music-db`
 6. 点击“添加绑定”
@@ -68,24 +62,26 @@
 ```
 https://xxxx.workers.dev/你的API_KEY
 ```
+
 #### 第 8 步：注册域名（如需国内访问）
 
 Workers 默认域名（`*.workers.dev`）在中国大陆**无法访问**，需要绑定自定义域名才能正常使用。
 
 **推荐免费域名注册平台：**
 
-| 平台 | 特点 | 链接 |
-|------|------|------|
-| INDEVS.in | 免费域名，单用户限5个，1年有效期 | [注册入口](https://domain.stackryze.com/) |
-| 其他免费域名 | 需选择支持 Cloudflare 托管的平台 | [整理列表](https://blog.zrf.me/p/Free-Domains/) |
+| 平台        | 特点                     | 链接                                          |
+| --------- | ---------------------- | ------------------------------------------- |
+| INDEVS.in | 免费域名，单用户限5个，1年有效期      | [注册入口](https://domain.stackryze.com/)       |
+| 其他免费域名    | 需选择支持 Cloudflare 托管的平台 | [整理列表](https://blog.zrf.me/p/Free-Domains/) |
 
 **INDEVS.in 注册教程**：[视频教程](https://www.youtube.com/watch?v=7cZC4G7je1U)
 
 #### 第 9 步：绑定自定义域名到 Worker
 
-1. 进入 Worker 项目 → **设置** → **域和路由**
-2. 点击 **添加** → 选择 **自定义域**
-3. 输入你注册的域名（如 `phg-music.indevs.in`）→ 点击 **添加域**
+1. 进入你刚部署的 Worker 项目（Cloudflare 左侧菜单 → 计算 → **Workers 和 Pages** → 点击项目`cf-phg-music-server`）
+2. 页面左上角的菜单栏点击“设置”→**域和路由**
+3. 点击 **添加** → 选择 **自定义域**
+4. 输入你注册的域名（如 `phg-music.indevs.in`）→ 点击 **添加域**
 
 **绑定完成后访问地址：**
 
@@ -95,7 +91,7 @@ https://你的域名/你的API_KEY
 
 ## 费用说明
 
-> 以下为 Cloudflare 官方政策，可能随时变动，请以 [Cloudflare Workers 定价页面](https://developers.cloudflare.com/workers/platform/pricing) 为准
+> 以下为 Cloudflare 官方政策，请以 [Cloudflare Workers 定价页面](https://developers.cloudflare.com/workers/platform/pricing) 为准
 
 ### 套餐对比
 
@@ -110,28 +106,18 @@ https://你的域名/你的API_KEY
 
 **按每人每天3小时听歌估算（≈45次请求/天）：**
 
-| 套餐  | 可支持人数       |
-| --- | ----------- |
+| 套餐  | 可支持人数         |
+| --- | ------------- |
 | 免费版 | **\~2000人/天** |
 | 付费版 | **\~7000人/天** |
 
 **结论**：免费版完全够用，即使几百人同时使用也绰绰有余。
 
-**注意**：本项目使用 D1 数据库替代 KV，免费写入额度从 **1000次/天** 提升到 **10万次/天**，提升 **100倍**！
-
-***
-
-## 本地 D1 测试
-
-本地开发时，Wrangler 会使用 `.wrangler/state` 目录下的 SQLite 数据库模拟 D1。
-
-首次运行 `wrangler dev` 时会自动初始化 D1 数据。
-
 ***
 
 ## API 前缀说明
 
-服务启动后会生成一个随机的 API Key（32位字符），所有接口需要在路径中包含此 Key。
+服务启动后会生成一个的 API Key（32位字符），所有接口需要在路径中包含此 Key。
 
 - **管理接口**：需要 API Key，如 `/{apiKey}/api/scripts`
 
