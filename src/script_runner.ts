@@ -2677,4 +2677,5 @@ console.log('Polyfill setup complete.');
     this.requestHandler = null;
     this.isInitialized = false;
   }
+  
 }
